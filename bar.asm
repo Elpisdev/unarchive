@@ -1,5 +1,7 @@
 section .data
     FILENAME_SIZE   equ 256
+    BAR_CHECK1_VALUE  equ 3
+    BAR_CHECK2_VALUE  equ -1
 
 section .bss
     bar_num_files       resw 1
@@ -52,10 +54,25 @@ bar_extract_loop:
 
     push    0
     push    bytes_read
-    push    8
+    push    4
     push    bar_check1
     push    dword [file_handle]
     call    _ReadFile@20
+
+    push    0
+    push    bytes_read
+    push    4
+    push    bar_check2
+    push    dword [file_handle]
+    call    _ReadFile@20
+
+    mov     eax, [bar_check1]
+    cmp     eax, BAR_CHECK1_VALUE
+    jne     .invalid_format
+
+    mov     eax, [bar_check2]
+    cmp     eax, BAR_CHECK2_VALUE
+    jne     .invalid_format
 
     call    bar_read_file_size
     test    eax, eax
@@ -139,8 +156,14 @@ bar_process_filename:
     jb      .trim_loop
 
 .trim_done:
+    test    edx, edx
+    jz      .no_increment
     mov     edi, edx
     inc     edi
+    jmp     .set_null
+.no_increment:
+    mov     edi, bar_temp_filename
+.set_null:
     mov     byte [edi], 0
 
     mov     edi, bar_temp_filename
@@ -148,7 +171,7 @@ bar_process_filename:
     mov     al, [edi]
     test    al, al
     jz      .done
-    cmp     al, '\\'
+    cmp     al, 92
     jne     .next_char
     mov     byte [edi], '/'
 .next_char:
@@ -331,6 +354,8 @@ bar_extract_file_data:
     jmp     .done
 
 .error:
+    test    ebx, ebx
+    jz      .done
     push    ebx
     call    _CloseHandle@4
     xor     eax, eax

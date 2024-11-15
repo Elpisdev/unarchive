@@ -28,7 +28,7 @@ section .data
     msg_usage_len   equ $ - msg_usage
     msg_invalid db "Invalid archive format", 13, 10
     msg_invalid_len equ $ - msg_invalid
-    msg_invalid_bar db "Invalid BAR!", 13, 10
+    msg_invalid_bar db "Invalid archive", 13, 10
     msg_invalid_bar_len equ $ - msg_invalid_bar
     msg_open_error db "Failed to open file: ", 13, 10
     msg_open_error_len equ $ - msg_open_error
